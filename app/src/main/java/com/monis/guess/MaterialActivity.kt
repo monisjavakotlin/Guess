@@ -1,15 +1,13 @@
 package com.monis.guess
 
-import android.app.ProgressDialog.show
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
-//import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity;
-//import kotlinx.android.synthetic.main.activity_main.*
 
 import kotlinx.android.synthetic.main.activity_material.*
 import kotlinx.android.synthetic.main.content_material.*
@@ -24,16 +22,7 @@ class MaterialActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-            AlertDialog.Builder(this)
-                .setTitle("Replay game")
-                .setMessage("Are you sure?")
-                .setPositiveButton(getString(R.string.ok),{dialog, which ->
-                    secretNumber.reset()
-                    counter.setText(secretNumber.count.toString())
-                    number.setText("")
-                })
-                .setNeutralButton("Cancel",null)
-                .show()
+            replay()
         }
         counter.setText(secretNumber.count.toString())
         Log.d(TAG,"onCreate:" + secretNumber.secret)
@@ -43,6 +32,21 @@ class MaterialActivity : AppCompatActivity() {
             .getString("REC_NICKNAME",null)
         Log.d(TAG,"data:" + count + "/" + nick)
     }
+
+    private fun replay() {
+        AlertDialog.Builder(this)
+            .setTitle("Replay game")
+            .setMessage("Are you sure?")
+            .setPositiveButton(getString(R.string.ok), { dialog, which ->
+                secretNumber.reset()
+                counter.setText(secretNumber.count.toString())
+                number.setText("")
+            })
+            .setNeutralButton("Cancel", null)
+            .show()
+    }
+
+    private val REQUEST_RECORD = 100
 
     fun check(view : View){
         val n = number.text.toString().toInt()
@@ -66,10 +70,21 @@ class MaterialActivity : AppCompatActivity() {
                 if(diff == 0){
                     val intent = Intent(this,RecordActivity::class.java)
                     intent.putExtra("COUNTER",secretNumber.count)
-                    startActivity(intent)
+                    startActivityForResult(intent,REQUEST_RECORD)
                 }
             })
             .show()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if(requestCode == REQUEST_RECORD){
+            if(resultCode == Activity.RESULT_OK){
+                val nickname = data?.getStringExtra("NICK")
+                Log.d(TAG,"onActivityResult:" + nickname)
+                replay()
+            }
+        }
     }
 
 }
